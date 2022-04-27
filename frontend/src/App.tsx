@@ -12,8 +12,49 @@ import HideIfNotLogged from "./Component/HideIfNotLogged";
 import BlogForm from "./Component/BlogForm";
 import useGetCookies from "./Hook/useGetCookies";
 import useEraseCookie from "./Hook/useEraseCookie";
+import Compte from "./Component/Compte";
+import Restriction from "./Component/Restriction";
+import axios from "axios";
 
 export default function App() {
+
+
+    const [xTokens, setXTokens] = useState();
+    const [xUsernames, setXUsernames] = useState();
+    const [xRole, setXRole] = useState();
+    const [xID, setXID] = useState();
+
+
+    useEffect(() => {
+        let x = document.cookie
+        .split(';')
+        .map(cookie => cookie.split('='))
+        .reduce((accumulator, [key, value]) => ({ ...accumulator, [key.trim()]: decodeURIComponent(value) }), {});
+
+        console.log(x);
+        console.log(x[""]);
+
+        if(x[""]!="undefined"){
+
+            let info = (x['hetic_JWT']?.split(";"));
+
+            setXUsernames(info[0]);
+    
+            setXRole(info[1]);
+    
+            setXID(info[2]);
+
+            setXTokens(info[3]);
+
+
+            console.log(info);
+
+        }
+
+
+
+    }, [])
+
     const [loggedUser, setLoggedUser] = useState<LoginResponseInterface>({
         status: 'error',
         token: "",
@@ -36,9 +77,9 @@ export default function App() {
             console.log('got cookies !', loggedUser)
             setLoggedUser(prev => ({
                 ...prev,
-                username: cookies.hetic_username,
-                token: cookies.hetic_token
-            }))
+                username: "username",
+                token: "token"
+            }));
         }
     }, [])
 
@@ -73,6 +114,9 @@ export default function App() {
 
     return (
         <div className='container mt-5'>
+            <h1>Pensez à rafraîchir la page une fois connecter et déconnecter...</h1>
+            <Compte username={xUsernames} role={xRole} id={xID} token={xTokens} />
+            <Restriction role={xRole}/>
             <HideIfLogged loggedUser={loggedUser}>
                 <LoginForm setLocalUser={setLocalUser} needsLogin={needsLogin} setNeedsLogin={setNeedsLogin}/>
             </HideIfLogged>

@@ -6,6 +6,8 @@ class User
     private string $username;
     private string $password;
     private string $token;
+    private string $role;
+    private string $privateKey;
 
     /**
      * @return string
@@ -75,6 +77,42 @@ class User
     public function setId(int $id): User
     {
         $this->id = $id;
+        return $this;
+    }
+
+     /**
+     * @return string
+     */
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    /**
+     * @param string $role
+     * @return User
+     */
+    public function setRole(string $role): User
+    {
+        $this->role = $role;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrivateKey(): string
+    {
+        return $this->privateKey;
+    }
+
+    /**
+     * @param string $privateKey
+     * @return User
+     */
+    public function setPrivateKey(string $privateKey): User
+    {
+        $this->privateKey = $privateKey;
         return $this;
     }
 

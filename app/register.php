@@ -5,9 +5,12 @@ require_once 'Classes/PDOFactory.php';
 require_once 'Classes/TokenHelper.php';
 require_once 'Classes/User.php';
 require_once 'Classes/CookieHelper.php';
+require_once 'Classes/JWTToken.php';
+require_once 'Classes/RSA.php';
 
 $username = $_REQUEST['username'] ?? '';
 $password = $_REQUEST['password'] ?? '';
+$role = "user";
 
 if (!$username || !$password) {
     echo json_encode([
@@ -33,10 +36,14 @@ if ($userAlreadyExists) {
     exit;
 }
 
-$insert = $pdo->prepare('INSERT INTO User (`username`, `password`, token) VALUES (:username, :password, :token)');
+$rsa = RSA::setRSA();
+
+$insert = $pdo->prepare('INSERT INTO User (`username`, `password`, token, `role`, `privateKey`   ) VALUES (:username, :password, :token, :role, :privateKey)');
 $insert->bindValue('username', $username, PDO::PARAM_STR);
 $insert->bindValue('password', password_hash($password, PASSWORD_BCRYPT), PDO::PARAM_STR);
 $insert->bindValue('token', TokenHelper::buildToken(), PDO::PARAM_STR);
+$insert->bindValue('role', $role, PDO::PARAM_STR);
+$insert->bindValue('privateKey', $rsa['private'], PDO::PARAM_STR);
 
 if ($insert->execute()) {
     $lastInsertId = $pdo->lastInsertId();
@@ -45,12 +52,16 @@ if ($insert->execute()) {
     /** @var User $newUser */
     $newUser = $return->fetch();
 
-    CookieHelper::setCookie($newUser->getToken(), $newUser->getUsername());
+    $jwt = JWTToken::setJWT($newUser->getToken(), $newUser->getUsername(), $newUser->getRole(), $newUser->getID(), $rsa);
+
+    CookieHelper::setCookie($newUser->getToken(), $newUser->getUsername(), $newUser->getRole(), $newUser->getID(), $jwt);
 
     echo json_encode([
         'status' => 'success',
         'username' => $newUser->getUsername(),
-        'token' => $newUser->getToken()
+        'token' => $newUser->getToken(),
+        'role' => $newUser->getRole(),
+        'privateKey' => $rsa['private'],
     ]);
     exit;
 }
